@@ -1,0 +1,215 @@
+
+;Ejercicio 1
+;funciona
+
+(defun crea-recordatorio (fecha tema descripcion)
+  (list :FECHA fecha :TEMA tema :DESCRIPCION descripcion )
+  )
+
+(crea-recordatorio '(8 6 2018 9 0) 'escuela "Examen TP")
+
+;Ejercicio 2
+;funciona
+
+(defun nuevo-recordatorio(recordatorio recordatorios)
+  (list recordatorios recordatorio)
+  )
+
+(setf recordatorios 
+  (nuevo-recordatorio 
+    (crea-recordatorio '(8 6 2018 9 0) 'escuela "Examen TP")nil))
+
+(setf recordatorios 
+   (nuevo-recordatorio 
+     (crea-recordatorio '(9 6 2018 12 0) 'personal "Ir gimnasio")
+      recordatorios))
+
+;Ejercicio 3 filtro de libro(patron recursivo, lista -lista lista con eliminacion)
+;funciona
+
+(defun elimina-recordatorio (fecha recordatorios) 
+   (remove-if #'(lambda (recordatorio) 
+              (if(and (equal (getf recordatorio :FECHA) fecha) 
+                           )recordatorio))
+    recordatorios)
+  )
+(setf recordatorios(elimina-recordatorio '(8 6 2018 9 0) recordatorios) )
+
+;ejercicio 4 recursivo, patrones: operacion de transformacion, lista del mismo tamaño con elementos modificados
+;funciona
+
+(defun crea-casilla (posicion ficha)
+  (list :POSICION POSICION :FICHA FICHA)
+  )
+
+(defun crea-tablero (filas columnas)
+  (let((tablero NIL))
+    (dotimes (fila filas tablero)
+      (dotimes (columna columnas)
+        (setf tablero(cons (crea-casilla (list fila columna) 'vacia) tablero )))))
+  )
+
+(defun pone-ficha1 (posicion ficha tablero)
+  (dolist (casilla tablero)
+     (if(and (equal(getf casilla :POSICION) posicion)
+                   (equal(getf casilla :FICHA) 'VACIA))       
+             (setf (getf casilla :FICHA) ficha)
+       ))tablero
+ ) 
+
+(pone-ficha1 '(2 1) 'circulo (crea-tablero 3 3))
+
+;ejercicio 5 con primitivas, mapcar, primitiva se transforma, lista - lista (cada elemento sufre una operacion)
+;funcion lambda que aplicara mapcar a la lista y lo mete el resultado en lista
+;funciona
+
+(defun pone-ficha2 (posicion ficha tablero)
+  (mapcar #'(lambda (casilla)
+              (if(and (equal(getf casilla :POSICION) posicion)
+                   (equal(getf casilla :FICHA) 'VACIA))
+                (crea-casilla posicion ficha)
+               casilla))tablero)
+ ) 
+
+(pone-ficha2 '(2 2) 'circulo (crea-tablero 3 3))
+
+;ejercicio 6 con una clausura, esta realizada en clase(preguntar)
+;funciona
+(setf contador
+    (let ((cuenta 0))
+      #'(lambda () (setf cuenta (+ cuenta 1)))))
+
+(defun siguiente-numero ()  
+  (funcall contador)
+ ) 
+
+(siguiente-numero)
+(siguiente-numero)
+(siguiente-numero)
+
+;ejercicio 7 iterativa, si esta vacia la posicion que me pasa es igual a vacio, recorrer lista(dolist()) y con un condicional
+; cuando encuentre la posicion que me ha dado como argumento ¿esta vacio? si, retorno el elemnto se cumple a true no,
+;funciona
+(defun posicion-esta-vacia1 (posicion tablero)
+  (dolist (casilla tablero)
+     (if(and (equal(getf casilla :POSICION) posicion)
+                   (equal(getf casilla :FICHA) 'VACIA))       
+             (return casilla)
+       ))
+ ) 
+
+(posicion-esta-vacia1 '(2 2) (crea-tablero 3 3))
+(posicion-esta-vacia1 '(2 2) (pone-ficha2 '(2 2) 'cruz (crea-tablero 3 3)))
+
+;ejercicio 8 recursiva del ejercicio 7, es un ejercicio de la practica
+;funciona
+(defun posicion-esta-vacia2 (posicion tablero)
+  (find-if #'(lambda (casilla) 
+              (if(and (equal (getf casilla :POSICION) posicion) 
+                           (equal(getf casilla :FICHA)'VACIA))casilla))
+    tablero)
+ )
+
+(posicion-esta-vacia2 '(2 2) (crea-tablero 3 3))
+(posicion-esta-vacia2 '(2 2) (pone-ficha2 '(2 2) 'cruz (crea-tablero 3 3)))
+
+;ejercicio 9 iterativa, esta dentro? lista(dolist)
+;funciona
+(defun posicion-dentro-tablero1 (posicion tablero)
+  (dolist (casilla tablero)
+     (if(and (equal(getf casilla :POSICION) posicion)
+                   )  
+            (return 'T)
+       ))
+ ) 
+(posicion-dentro-tablero1 '(1 1) (crea-tablero 3 3))
+(posicion-dentro-tablero1 '(1 5) (crea-tablero 3 3))
+
+;ejercicio 10 recursivo ejercicio 9, patron de diseño(filtro)
+;funciona
+(defun posicion-dentro-tablero2 (posicion tablero)
+  (if (eq 'T(> 1 (count-if #'(lambda (casilla)
+                               (equal (getf casilla :POSICION) posicion))
+                   tablero)))
+    'NIL
+    'T    
+    )
+ ) 
+(posicion-dentro-tablero2 '(1 1) (crea-tablero 3 3))
+(posicion-dentro-tablero2 '(1 5) (crea-tablero 3 3))
+
+;ejercicio 11 iterativo
+;funciona
+(defun cumple (reglas posicion tablero)
+  (reduce #'(lambda (esta-vacia dentro-tablero) (and 
+							(funcall esta-vacia posicion tablero)
+                            (funcall dentro-tablero posicion tablero)))
+      reglas)
+ )
+
+(setf reglas (list #'posicion-esta-vacia2 #'posicion-dentro-tablero2))
+
+(cumple reglas '(1 1) (crea-tablero 3 3))
+(cumple reglas '(1 5) (crea-tablero 3 3))
+
+;ejercicio 12 recursivo, patron busqueda
+;no realizado
+
+(defun devuelve-recordatorio1 (fecha recordatorios)
+  (mapcar #'(lambda (recordatorio)
+              (if (equal(getf recordatorio :FECHA) fecha)                                   
+               recordatorio))recordatorios)
+ )
+
+(devuelve-recordatorio1 '(9 6 2018 12 0) recordatorios)
+
+;-----------------------------------------------------------
+;12
+;(devuelve-recordatorio1 '(9 6 2018 12 0) recordatorios)
+(defun devuelve-recordatorio1 (fecha recordatorios)
+  (cond  ((endp recordatorios) nil  )
+         ( (equal (getf (first recordatorios) :fecha) fecha )  (first recordatorios) )
+         (t (devuelve-recordatorio1 fecha (rest recordatorios) ))))
+
+
+;ejercicio 13 iterativa
+;funciona
+(defun devuelve-recordatorio2 (fecha recordatorios)
+   (dolist (recordatorio recordatorios)
+     (if(and (equal(getf recordatorio :FECHA) fecha)
+                   )      
+             (return recordatorio)
+       ))
+)
+
+(devuelve-recordatorio2 '(9 6 2018 12 0) recordatorios)
+
+
+;versiondos(2)
+;(devuelve-recordatorio2 '(9 6 2018 12 0) recordatorios)
+(defun devuelve-recordatorio2 (fecha recordatorios)
+  (dolist (recordatorio recordatorios)
+    (if (equal (getf recordatorio :fecha) fecha)
+        (return recordatorio))))
+
+;ejercicio 14  primitiva + lambda
+;funciona
+(defun devuelve-recordatorio3 (fecha recordatorios)
+  (find-if #'(lambda (recordatorio)
+              (if (equal(getf recordatorio :FECHA) fecha)                                   
+               recordatorio))recordatorios)
+)
+
+(devuelve-recordatorio3 '(9 6 2018 12 0) recordatorios)
+
+;ejericio 15 recursivo, patron de cuenta
+;funciona
+(defun cuenta-fichas (ficha tablero)
+  (count-if #'(lambda (casilla) (eq (getf casilla :FICHA) ficha))tablero)
+ ) 
+
+(setf tablero (pone-ficha2 '(2 2) 'circulo (crea-tablero 3 3)))
+
+(cuenta-fichas 'circulo tablero)
+(cuenta-fichas 'cruz tablero)
+(cuenta-fichas 'vacia tablero)
